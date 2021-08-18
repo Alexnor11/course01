@@ -67,4 +67,5 @@ for photo in ('457239025', '457239022', '457239021', '457239023', '457239024'):
         js = {'file_name': photo_out, 'size': size_type}
         json.dump(js, f_log, indent=1)
 
-print('\nФотографии загружены на Яндекс диск')
+if r.status_code == 202:
+    print('\nФайлы загружены на Яндекс диск!')
