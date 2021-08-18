@@ -15,6 +15,10 @@ URL = 'https://api.vk.com/method/photos.get'
 file_erase = open('log.json', 'w')
 file_erase.close()
 
+# owner_id = input('Введите токен от Vk: ')
+# numb_photos = input('Введите количество фотографий: ')
+# photo_ids = input('Введите id фотографий, через запятую, которые хотите перенести на Яндекс диск: ')
+
 for photo in ('457239025', '457239022', '457239021', '457239023', '457239024'):
     params = {
         'owner_id': '668938039',
@@ -22,6 +26,7 @@ for photo in ('457239025', '457239022', '457239021', '457239023', '457239024'):
         'v': '5.131',
         'album_id': 'wall',
         'photo_ids': photo,
+        # 'count': numb_photos,
 
     }
     res = requests.get(URL, params=params).json()
@@ -54,8 +59,13 @@ for photo in ('457239025', '457239022', '457239021', '457239023', '457239024'):
     # 1-й запрос - получение ссылки для загрузки файла
     upload_url = href  # Получаем ссылку
     photo_out = str(photo) + '.jpg'  # имена фото
+    # Создание папки на Яндекс диске:
+    create = requests.put(API_BASE_URL + 'v1/disk/resources/', headers=headers, params={
+        'path': 'photo_vk'
+    })
+    # Загрузка фотографий на Яндекс диск
     r = requests.post(API_BASE_URL + 'v1/disk/resources/upload/', headers=headers, params={
-        'path': 'py-43/' + photo_out, 'url': upload_url
+        'path': 'photo_vk/' + photo_out, 'url': upload_url
     })
     if r.status_code == 202:
         print('###', end='')
