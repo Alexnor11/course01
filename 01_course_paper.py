@@ -15,12 +15,19 @@ while True:
 with open('token.txt', 'r') as file_vk:
     token = file_vk.read().strip()
 
-# Запрос токен Яндекс диска у пользователя:
-TOKEN_Y = input('Введите токен Яндекс диска: ')
-if TOKEN_Y == '':
-    # Чтение токен из файла Yandex
-    with open('token_yandex.txt', 'r') as file_yandex:
-        TOKEN_Y = file_yandex.read().strip()
+while True:
+    # Запись в файл токена введенного от пользователя:
+    TOKEN_Y = input('Введите токен Яндекс диска: ')
+    if TOKEN_Y == '':
+        print('Токен не может быть пустым!')
+    else:
+        break
+with open('token_yandex.txt', 'w') as file_yandex:
+    file_yandex.write(TOKEN_Y)
+
+# Чтение токен из файла Yandex
+with open('token_yandex.txt', 'r') as file_yandex:
+    TOKEN_Y = file_yandex.read().strip()
 
 # Запрос идентификатора альбома у пользователя (отключен по умолчанию)
 # while True:
@@ -95,8 +102,8 @@ for photo in res['response']['items']:
 
     if r.status_code == 202:
         print('###', end='')
-    else:
-        print(f'Произошла ошибка: {r.status_code}')
+    # else:
+    #     print(f'Произошла ошибка: {r.status_code}')
 
         # Запишем файл лог
     with open('log.json', 'a') as f_log:
@@ -105,4 +112,7 @@ for photo in res['response']['items']:
 
 if r.status_code == 202:
     print(f'\nФайлы загружены на Яндекс диск!')
+elif r.status_code != 202:
+    print('Возможно вы ошиблись при вводе токена на Яндекс диске!\n'
+          'Код ошибки', r.status_code)
 
