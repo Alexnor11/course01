@@ -2,19 +2,33 @@ import requests
 import operator
 import json
 
-# Чтение token из файла токен VK
+
+# Запрос vk id у пользователя:
+while True:
+    owner_id = input('Введите id от Vk: ')
+    if owner_id == '':
+        print('Вы ничего не ввели!')
+    else:
+        break
+
+# Чтение token из файла токен VK (Запрос у пользователя отключен)
 with open('token.txt', 'r') as file_vk:
     token = file_vk.read().strip()
 
-owner_id = input('Введите токен от Vk: ')
-if owner_id == '':
-    owner_id = '552934290'
-
+# Запрос токен Яндекс диска у пользователя:
 TOKEN_Y = input('Введите токен Яндекс диска: ')
 if TOKEN_Y == '':
     # Чтение токен из файла Yandex
     with open('token_yandex.txt', 'r') as file_yandex:
         TOKEN_Y = file_yandex.read().strip()
+
+# Запрос идентификатора альбома у пользователя (отключен по умолчанию)
+# while True:
+#     album_id = input('Введите идентификатор альбома: "wall" или "profile": ')
+#     if album_id != 'wall' and album_id != 'profile':
+#         print('Вы ввели что-то другое.')
+#     else:
+#         break
 
 URL = 'https://api.vk.com/method/photos.get'
 
@@ -22,23 +36,26 @@ URL = 'https://api.vk.com/method/photos.get'
 file_erase = open('log.json', 'w')
 file_erase.close()
 
-# numb_photos = input('Введите количество фотографий: ')
-
-# for photo in ('457239025', '457239022', '457239021', '457239023', '457239024'):
 params = {
-    'owner_id': owner_id,
+    'user_id': owner_id,
     'access_token': token,
     'v': '5.131',
     'album_id': 'profile',
+    # 'album_id': album_id,
     # 'photo_ids': photo,
     'count': '5',
 
 }
 
-res = requests.get(URL, params=params).json()
-res1 = res['response']['items']
+res = requests.get(URL, params).json()
 
-for photo in res1:
+try:
+    res1 = res['response']['items']
+except KeyError:
+    # print('Введен не верный id от VK пользователя!')
+    exit('Введен не верный id от VK пользователя!')
+
+for photo in res['response']['items']:
     photos_data = {}
     photos_info = {}
     photo_id = photo.get('id')
@@ -65,7 +82,6 @@ for photo in res1:
         # 'accept': 'application/json',
         'authorization': f'OAuth {TOKEN_Y}'}  # стандартный способ авторизации
 
-    # 1-й запрос - получение ссылки для загрузки файла
     upload_url = href  # Получаем ссылку
     photo_out = str(photo_id) + '.jpg'  # имена фото
     # Создание папки на Яндекс диске:
@@ -80,7 +96,7 @@ for photo in res1:
     if r.status_code == 202:
         print('###', end='')
     else:
-        print('При отправке файла произошла ошибка', r.status_code)
+        print(f'Произошла ошибка: {r.status_code}')
 
         # Запишем файл лог
     with open('log.json', 'a') as f_log:
@@ -88,4 +104,5 @@ for photo in res1:
         json.dump(js, f_log, indent=1)
 
 if r.status_code == 202:
-    print(f'\nФайлы в загружены на Яндекс диск!')
+    print(f'\nФайлы загружены на Яндекс диск!')
+
