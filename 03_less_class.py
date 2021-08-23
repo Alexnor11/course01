@@ -9,8 +9,7 @@ with open('token.txt', 'r') as file_vk:
 # Чтение токен из файла Yandex
 with open('token_yandex.txt', 'r') as file_yandex:
     token_y = file_yandex.read().strip()
-
-numb_photos = 5
+# Сделать запрос у пользователя
 
 
 class VkUser:
@@ -28,9 +27,9 @@ class VkUser:
         """Получить данные с VK"""
         url = self.url + 'photos.get'
         photo_params = {
-            'album_id': 'wall',
+            'album_id': 'profile',
             # 'photo_ids': photo_ids,
-            'count': numb_photos,
+            'count': '5',
         }
         # print(numbers)
         req = requests.get(url, params={**self.params, **photo_params}).json()
@@ -39,6 +38,7 @@ class VkUser:
     def get_url_photo(self):
         """Получить ссылки на фотографии максимального размера"""
         req = self.get_data()
+        photo_info_all = {}
         for val in req:
             photo_data = {}
             photo_info = {}
@@ -57,22 +57,19 @@ class VkUser:
             # Сортируем фото по площади фото:
             sort_list = sorted(photo_data.items(), key=operator.itemgetter(0))
             # Выбираю ссылки на фотографии максимального размера:
-            # url_photo_max = sort_list[0][1]
             photos_data = sort_list[len(sort_list) - 1][1]
             url_photo_max = photos_data[0]
             size_type = photos_data[1]
+            # return size_type, url_photo_max
+            # pprint(size_type)
+            # pprint(url_photo_max)
 
-            """Вот эти переменные я перенес в словарь, теперь не 
-            знаю как их перенести в класс YaUploader
-            Мне нужно взять ссылки и в качестве названия файла яндекс
-            решил использовать id фото, потому, что лайков у меня нет, и дата
-            тоже повторяется, (у меня новый аккаунт)"""
-
-            # Словарь photo_info c необходимыми параметрами:
+            # Словарь параметров фото:
             photo_info['photo_id'] = photo_id
             photo_info['url_photo'] = url_photo_max
             photo_info['size_type'] = size_type
-            pprint(photo_info)
+            # pprint(photo_info)
+            return photo_info
 
     def record_data(self):
         """Записать данные о загруженных фотографиях"""
@@ -81,36 +78,28 @@ class VkUser:
 
 class YaUploader:
     def __init__(self, token: str):
-        # self.file_url = file_url
-        # self.file_path = file_path
         self.API_BASE_URL = 'https://cloud-api.yandex.net/'
         self.token = token
         self.headers = {'Authorization': token}
 
-    def upload(self, file_path, file_url):
-        """Метод загружает файлы по списку file_list на яндекс диск"""
-        # 1-й запрос - получение ссылки для загрузки файла
-        r = requests.post(self.API_BASE_URL + 'v1/disk/resources/upload/', headers=self.headers, params={
-            'path': 'py_43' + file_path,
+    def upload(self, file_url, file_path):
+        """Метод загружает файлов на яндекс диск"""
+        # Создание папки на Яндекс диске:
+        requests.put(self.API_BASE_URL + 'v1/disk/resources/', headers=self.headers, params={
+            'path': 'photo_vk'
+        })
+        loading = requests.post(self.API_BASE_URL + 'v1/disk/resources/upload/', headers=self.headers, params={
+            'path': 'photo_vk/' + str(file_path) + '.jpg',
             'url': file_url
         })
+        if loading.status_code == 202:
+            print('###', end='')
 
-
-vk_client = VkUser('668938039', token_vk, '5.131')
 
 if __name__ == '__main__':
     """Получить путь к загружаемому файлу и токен от пользователя"""
-    uploader = YaUploader(token_y)
-    vk_client.get_url_photo()
-
-# Перебираю id фотографий из vk
-# for ids in ('457239025', '457239022', '457239021', '457239023', '457239024'):
-#     vk_client.get_data(ids)
-
-
-"""*Мне еще не понятно, можно ли так использовать метот get_url_photo() так? 
-Мне как то хотелось задачи разделить на более мелкие методы. Но никак не могу понять
-как можно взаимодействовать между методами.
-
-Логически я понимаю, что с использованием ООП, код должен быть лучше, но 
-у меня он получается, как то даже громоздким по сравнению с первым вариантом"""
+    vk_client = VkUser('552934290', token_vk, '5.131')
+    up_loader = YaUploader(token_y)
+    photo = vk_client.get_url_photo()
+    # print(photo['photo_id'])
+    up_loader.upload(photo['url_photo'], photo['photo_id'])
