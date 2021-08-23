@@ -96,7 +96,7 @@ class YaUploader:
         if loading.status_code == 202:
             print('###', end='')
         elif loading.status_code != 202:
-            exit(f' Ошибка: {loading.status_code}, Возможно введен не верный id от Яндекс Диск!')
+            exit(f' Ошибка: {loading.status_code}, Возможно введен не верный токен от Яндекс Диск!')
 
     def get_data_upload(self):
         photos = vk_client.get_url_photo()
